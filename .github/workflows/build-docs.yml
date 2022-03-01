@@ -1,0 +1,36 @@
+name: Build Docs
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Python is python3.8
+        run: alias python=python3.8
+      - name: Cd docs
+        run: cd docs
+      - name: Install Docs Deps
+        run: python -m pip install -r requirements.txt
+      - name: Build Docs
+        run: make dirhtml
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v1.1.5
+        with:
+          publish-dir: './_build/dirhtml'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          enable-commit-comment: false
+          alias: tts-docsqa-integration
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
